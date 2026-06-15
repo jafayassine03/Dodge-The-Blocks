@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dodge The Blocks</title>
+<link rel="stylesheet" href="dodge.css">
+</head>
+<body>
+
+<div class="game-container">
+    <h1>Dodge The Blocks</h1>
+
+    <div class="stats">
+        <span>Score: <span id="score">0</span></span>
+        <button id="restart">Restart</button>
+    </div>
+
+    <div id="game">
+        <div id="player"></div>
+    </div>
+
+    <div id="gameOver" class="hidden">
+        <h2>Game Over</h2>
+        <p>Final Score: <span id="finalScore"></span></p>
+    </div>
+</div>
+
+<script src="dodge.js"></script>
+</body>
+</html>
