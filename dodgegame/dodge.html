@@ -3,27 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dodge The Blocks</title>
+<title>Zombie Escape</title>
 <link rel="stylesheet" href="dodge.css">
 </head>
 <body>
 
-<div class="game-container">
-    <h1>Dodge The Blocks</h1>
+<div id="startScreen" class="screen">
+    <h1>🧟 Zombie Escape</h1>
+    <p>Survive as long as you can</p>
+    <button id="startBtn">Start Game</button>
+    <p class="hint">
+        Move: WASD / Arrow Keys <br>
+        Sprint: Shift
+    </p>
+</div>
 
-    <div class="stats">
-        <span>Score: <span id="score">0</span></span>
-        <button id="restart">Restart</button>
-    </div>
+<div id="hud">
+    <div>⏱ Time: <span id="time">0</span>s</div>
+    <div>❤️ Health: <span id="health">3</span></div>
+    <div>🏆 High Score: <span id="highScore">0</span>s</div>
+</div>
 
-    <div id="game">
-        <div id="player"></div>
-    </div>
+<div id="game">
+    <div id="player"></div>
+</div>
 
-    <div id="gameOver" class="hidden">
-        <h2>Game Over</h2>
-        <p>Final Score: <span id="finalScore"></span></p>
-    </div>
+<div id="gameOver" class="screen hidden">
+    <h1>💀 You Died</h1>
+    <p>Survived: <span id="finalTime">0</span>s</p>
+    <button id="restartBtn">Restart</button>
 </div>
 
 <script src="dodge.js"></script>
