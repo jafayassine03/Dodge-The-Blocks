@@ -1,83 +1,92 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
-body{
-    background:#0f172a;
-    color:white;
-    font-family:Arial,Helvetica,sans-serif;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
+body {
+    background: radial-gradient(circle at center, #0b0f14, #050608);
+    color: white;
+    overflow: hidden;
 }
 
-.game-container{
-    text-align:center;
+/* GAME AREA */
+#game {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
 }
 
-h1{
-    margin-bottom:15px;
+/* PLAYER */
+#player {
+    width: 40px;
+    height: 40px;
+    background: #22c55e;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 8px;
+    box-shadow: 0 0 15px #22c55e;
 }
 
-.stats{
-    width:400px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:10px;
+/* ZOMBIES */
+.zombie {
+    width: 40px;
+    height: 40px;
+    background: #ef4444;
+    position: absolute;
+    border-radius: 8px;
+    box-shadow: 0 0 15px #ef4444;
 }
 
-button{
-    padding:8px 15px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:bold;
-    background:#38bdf8;
-    color:white;
+/* HUD */
+#hud {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 20px;
+    font-size: 16px;
+    z-index: 10;
 }
 
-button:hover{
-    opacity:0.9;
+/* SCREENS */
+.screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 20;
 }
 
-#game{
-    width:400px;
-    height:600px;
-    background:#1e293b;
-    border:3px solid #38bdf8;
-    border-radius:15px;
-    position:relative;
-    overflow:hidden;
+.hidden {
+    display: none;
 }
 
-#player{
-    width:50px;
-    height:50px;
-    background:#22c55e;
-    position:absolute;
-    bottom:20px;
-    left:175px;
-    border-radius:10px;
-    box-shadow:0 0 15px #22c55e;
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    border: none;
+    background: #22c55e;
+    color: black;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
 }
 
-.block{
-    width:50px;
-    height:50px;
-    background:#ef4444;
-    position:absolute;
-    border-radius:10px;
-    box-shadow:0 0 15px #ef4444;
+button:hover {
+    background: #16a34a;
 }
 
-.hidden{
-    display:none;
-}
-
-#gameOver{
-    margin-top:15px;
+.hint {
+    margin-top: 15px;
+    opacity: 0.7;
+    font-size: 14px;
 }
