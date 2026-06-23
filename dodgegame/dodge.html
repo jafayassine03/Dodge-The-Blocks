@@ -1,39 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zombie Escape</title>
-<link rel="stylesheet" href="dodge.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zombie Escape</title>
+    <link rel="stylesheet" href="dodge.css">
 </head>
 <body>
 
-<div id="startScreen" class="screen">
-    <h1>🧟 Zombie Escape</h1>
-    <p>Survive as long as you can</p>
-    <button id="startBtn">Start Game</button>
-    <p class="hint">
-        Move: WASD / Arrow Keys <br>
-        Sprint: Shift
-    </p>
-</div>
+    <div id="startScreen" class="overlay">
+        <h1>🧟 Zombie Escape</h1>
+        <p>Survive endless waves of zombies.</p>
 
-<div id="hud">
-    <div>⏱ Time: <span id="time">0</span>s</div>
-    <div>❤️ Health: <span id="health">3</span></div>
-    <div>🏆 High Score: <span id="highScore">0</span>s</div>
-</div>
+        <div class="controls">
+            <p>WASD / Arrow Keys = Move</p>
+            <p>Shift = Sprint</p>
+            <p>Mouse Click = Shoot</p>
+            <p>P = Pause</p>
+        </div>
 
-<div id="game">
-    <div id="player"></div>
-</div>
+        <button id="startBtn">Start Game</button>
+    </div>
 
-<div id="gameOver" class="screen hidden">
-    <h1>💀 You Died</h1>
-    <p>Survived: <span id="finalTime">0</span>s</p>
-    <button id="restartBtn">Restart</button>
-</div>
+    <div id="hud">
+        <div class="hud-item">❤️ Health: <span id="health">5</span></div>
+        <div class="hud-item">🏆 Score: <span id="score">0</span></div>
+        <div class="hud-item">🌊 Wave: <span id="wave">1</span></div>
+        <div class="hud-item">💰 Coins: <span id="coins">0</span></div>
+        <div class="hud-item">⚡ Stamina: <span id="stamina">100</span></div>
+    </div>
 
-<script src="dodge.js"></script>
+    <div id="waveMessage"></div>
+
+    <div id="game">
+        <div id="player"></div>
+    </div>
+
+    <div id="crosshair"></div>
+
+    <div id="pauseScreen" class="overlay hidden">
+        <h1>⏸ Paused</h1>
+        <p>Press P to continue</p>
+    </div>
+
+    <div id="gameOverScreen" class="overlay hidden">
+        <h1>💀 Game Over</h1>
+
+        <div class="stats">
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <p>Wave Reached: <span id="finalWave">1</span></p>
+            <p>High Score: <span id="highScore">0</span></p>
+        </div>
+
+        <button id="restartBtn">Play Again</button>
+    </div>
+
+    <script src="dodge.js"></script>
+
 </body>
 </html>
