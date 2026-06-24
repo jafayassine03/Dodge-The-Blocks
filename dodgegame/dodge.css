@@ -25,6 +25,7 @@ body{
 }
 
 
+
 #hud{
     position:fixed;
     top:15px;
@@ -98,6 +99,7 @@ body{
 }
 
 
+
 .bullet{
     width:10px;
     height:10px;
@@ -131,6 +133,7 @@ body{
         transform:translateY(-6px);
     }
 }
+
 
 
 .particle{
