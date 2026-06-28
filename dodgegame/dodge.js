@@ -1,489 +1,468 @@
-const game = document.getElementById("game");
-const player = document.getElementById("player");
+const game=document.getElementById("game");
+const player=document.getElementById("player");
+const startBtn=document.getElementById("startBtn");
+const restartBtn=document.getElementById("restartBtn");
+const menu=document.getElementById("menu");
+const pauseMenu=document.getElementById("pause");
+const gameOver=document.getElementById("gameOver");
+const crosshair=document.getElementById("crosshair");
 
-const healthEl = document.getElementById("health");
-const scoreEl = document.getElementById("score");
-const waveEl = document.getElementById("wave");
-const coinsEl = document.getElementById("coins");
-const staminaEl = document.getElementById("stamina");
+const healthText=document.getElementById("health");
+const scoreText=document.getElementById("score");
+const waveText=document.getElementById("wave");
+const coinText=document.getElementById("coins");
+const staminaText=document.getElementById("stamina");
+const waveBanner=document.getElementById("waveText");
+const finalScore=document.getElementById("finalScore");
 
-const startScreen = document.getElementById("startScreen");
-const pauseScreen = document.getElementById("pauseScreen");
-const gameOverScreen = document.getElementById("gameOverScreen");
+let playerX=window.innerWidth/2;
+let playerY=window.innerHeight/2;
+let playerSize=40;
 
-const startBtn = document.getElementById("startBtn");
-const restartBtn = document.getElementById("restartBtn");
+let health=5;
+let score=0;
+let wave=1;
+let coins=0;
+let stamina=100;
 
-const finalScoreEl = document.getElementById("finalScore");
-const finalWaveEl = document.getElementById("finalWave");
-const highScoreEl = document.getElementById("highScore");
+let running=false;
+let paused=false;
 
-const waveMessage = document.getElementById("waveMessage");
-const crosshair = document.getElementById("crosshair");
+let speed=4;
+let sprintSpeed=7;
 
-let keys = {};
-let zombies = [];
-let bullets = [];
-let coins = [];
-let particles = [];
+const keys={};
 
-let running = false;
-let paused = false;
+function updateHUD(){
+healthText.textContent=health;
+scoreText.textContent=score;
+waveText.textContent=wave;
+coinText.textContent=coins;
+staminaText.textContent=Math.floor(stamina);
+}
 
-let playerX = window.innerWidth / 2;
-let playerY = window.innerHeight / 2;
+function updatePlayer(){
+player.style.left=playerX+"px";
+player.style.top=playerY+"px";
+}
 
-let mouseX = 0;
-let mouseY = 0;
+function showWave(text){
+waveBanner.textContent=text;
+waveBanner.style.opacity=1;
+setTimeout(()=>{
+waveBanner.style.opacity=0;
+},1800);
+}
 
-let health = 5;
-let score = 0;
-let wave = 1;
-let money = 0;
-let stamina = 100;
+document.addEventListener("keydown",e=>{
+keys[e.key.toLowerCase()]=true;
 
-let highScore = localStorage.getItem("zombieHighScore") || 0;
-highScoreEl.textContent = highScore;
-
-document.addEventListener("keydown", e => {
-    keys[e.key.toLowerCase()] = true;
-
-    if (e.key.toLowerCase() === "p" && running) {
-        paused = !paused;
-
-        if (paused) {
-            pauseScreen.classList.remove("hidden");
-        } else {
-            pauseScreen.classList.add("hidden");
-        }
-    }
+if(e.key.toLowerCase()==="p"&&running){
+paused=!paused;
+pauseMenu.classList.toggle("hidden",!paused);
+}
 });
 
-document.addEventListener("keyup", e => {
-    keys[e.key.toLowerCase()] = false;
+document.addEventListener("keyup",e=>{
+keys[e.key.toLowerCase()]=false;
 });
 
-document.addEventListener("mousemove", e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-
-    crosshair.style.left = mouseX + "px";
-    crosshair.style.top = mouseY + "px";
+document.addEventListener("mousemove",e=>{
+crosshair.style.left=e.clientX+"px";
+crosshair.style.top=e.clientY+"px";
 });
 
-startBtn.addEventListener("click", () => {
-    startScreen.classList.add("hidden");
-    running = true;
+function movePlayer(){
 
-    player.style.left = playerX + "px";
-    player.style.top = playerY + "px";
+if(paused||!running)return;
 
-    showWave();
-    spawnWave();
-    loop();
+let currentSpeed=speed;
+
+if((keys["shift"])&&stamina>0){
+currentSpeed=sprintSpeed;
+stamina-=0.8;
+}else{
+stamina+=0.4;
+}
+
+if(stamina<0)stamina=0;
+if(stamina>100)stamina=100;
+
+if(keys["w"]||keys["arrowup"])playerY-=currentSpeed;
+if(keys["s"]||keys["arrowdown"])playerY+=currentSpeed;
+if(keys["a"]||keys["arrowleft"])playerX-=currentSpeed;
+if(keys["d"]||keys["arrowright"])playerX+=currentSpeed;
+
+if(playerX<playerSize/2)playerX=playerSize/2;
+if(playerY<playerSize/2)playerY=playerSize/2;
+if(playerX>window.innerWidth-playerSize/2)playerX=window.innerWidth-playerSize/2;
+if(playerY>window.innerHeight-playerSize/2)playerY=window.innerHeight-playerSize/2;
+
+updatePlayer();
+updateHUD();
+}
+
+function gameLoop(){
+
+if(running&&!paused){
+movePlayer();
+}
+
+requestAnimationFrame(gameLoop);
+}
+
+startBtn.onclick=()=>{
+menu.classList.add("hidden");
+running=true;
+showWave("Wave 1");
+};
+
+restartBtn.onclick=()=>{
+location.reload();
+};
+
+window.addEventListener("resize",()=>{
+if(playerX>window.innerWidth-playerSize/2)playerX=window.innerWidth-playerSize/2;
+if(playerY>window.innerHeight-playerSize/2)playerY=window.innerHeight-playerSize/2;
+updatePlayer();
 });
 
-restartBtn.addEventListener("click", () => {
-    location.reload();
+updateHUD();
+updatePlayer();
+gameLoop();
+const zombies=[];
+const bullets=[];
+const coinsList=[];
+
+function spawnZombie(){
+
+if(!running)return;
+
+const z=document.createElement("div");
+z.className="zombie";
+
+const type=Math.random();
+
+let hp=1;
+let speed=1.2;
+let size=40;
+
+if(type>.82){
+z.classList.add("fast");
+speed=2.4;
+}
+
+if(type>.94){
+z.classList.remove("fast");
+z.classList.add("tank");
+hp=4;
+speed=.7;
+size=60;
+}
+
+let x,y;
+
+if(Math.random()<.5){
+x=Math.random()*window.innerWidth;
+y=Math.random()<.5?-80:window.innerHeight+80;
+}else{
+x=Math.random()<.5?-80:window.innerWidth+80;
+y=Math.random()*window.innerHeight;
+}
+
+z.style.width=size+"px";
+z.style.height=size+"px";
+z.style.left=x+"px";
+z.style.top=y+"px";
+
+game.appendChild(z);
+
+zombies.push({
+el:z,
+x,
+y,
+size,
+speed,
+hp,
+hit:0
+});
+}
+
+function shoot(e){
+
+if(!running||paused)return;
+
+const b=document.createElement("div");
+b.className="bullet";
+
+const angle=Math.atan2(e.clientY-playerY,e.clientX-playerX);
+
+game.appendChild(b);
+
+bullets.push({
+el:b,
+x:playerX,
+y:playerY,
+dx:Math.cos(angle)*12,
+dy:Math.sin(angle)*12
+});
+}
+
+document.addEventListener("mousedown",shoot);
+
+function moveBullets(){
+
+for(let i=bullets.length-1;i>=0;i--){
+
+const b=bullets[i];
+
+b.x+=b.dx;
+b.y+=b.dy;
+
+b.el.style.left=b.x+"px";
+b.el.style.top=b.y+"px";
+
+if(
+b.x<-50||
+b.x>window.innerWidth+50||
+b.y<-50||
+b.y>window.innerHeight+50
+){
+b.el.remove();
+bullets.splice(i,1);
+}
+
+}
+}
+
+function moveZombies(){
+
+for(let i=zombies.length-1;i>=0;i--){
+
+const z=zombies[i];
+
+const angle=Math.atan2(playerY-z.y,playerX-z.x);
+
+z.x+=Math.cos(angle)*z.speed;
+z.y+=Math.sin(angle)*z.speed;
+
+z.el.style.left=z.x+"px";
+z.el.style.top=z.y+"px";
+
+const dist=Math.hypot(playerX-z.x,playerY-z.y);
+
+if(dist<(playerSize+z.size)/2&&Date.now()-z.hit>700){
+
+z.hit=Date.now();
+
+health--;
+
+player.classList.add("damage");
+
+setTimeout(()=>{
+player.classList.remove("damage");
+},250);
+
+updateHUD();
+
+if(health<=0){
+running=false;
+gameOver.classList.remove("hidden");
+finalScore.textContent=score;
+}
+
+}
+
+}
+
+}
+
+function checkHits(){
+
+for(let i=bullets.length-1;i>=0;i--){
+
+const b=bullets[i];
+
+for(let j=zombies.length-1;j>=0;j--){
+
+const z=zombies[j];
+
+const d=Math.hypot(b.x-z.x,b.y-z.y);
+
+if(d<(z.size/2)+5){
+
+z.hp--;
+
+b.el.remove();
+bullets.splice(i,1);
+
+if(z.hp<=0){
+
+score+=10;
+coins++;
+updateHUD();
+
+z.el.remove();
+zombies.splice(j,1);
+
+}
+
+break;
+
+}
+
+}
+
+}
+
+}
+
+setInterval(()=>{
+if(running&&!paused){
+spawnZombie();
+}
+},1400);
+function updateCoins(){
+
+for(let i=coinsList.length-1;i>=0;i--){
+
+const c=coinsList[i];
+
+const d=Math.hypot(playerX-c.x,playerY-c.y);
+
+if(d<30){
+coins++;
+coinText.textContent=coins;
+c.el.remove();
+coinsList.splice(i,1);
+}
+
+}
+
+}
+
+function createParticles(x,y){
+
+for(let i=0;i<10;i++){
+
+const p=document.createElement("div");
+p.className="particle";
+
+game.appendChild(p);
+
+let px=x;
+let py=y;
+
+const dx=(Math.random()-.5)*8;
+const dy=(Math.random()-.5)*8;
+
+p.style.left=px+"px";
+p.style.top=py+"px";
+
+let life=30;
+
+const anim=setInterval(()=>{
+
+px+=dx;
+py+=dy;
+life--;
+
+p.style.left=px+"px";
+p.style.top=py+"px";
+p.style.opacity=life/30;
+
+if(life<=0){
+clearInterval(anim);
+p.remove();
+}
+
+},16);
+
+}
+
+}
+
+const oldCheckHits=checkHits;
+
+checkHits=function(){
+
+for(let i=bullets.length-1;i>=0;i--){
+
+const b=bullets[i];
+
+for(let j=zombies.length-1;j>=0;j--){
+
+const z=zombies[j];
+
+const d=Math.hypot(b.x-z.x,b.y-z.y);
+
+if(d<(z.size/2)+5){
+
+z.hp--;
+
+b.el.remove();
+bullets.splice(i,1);
+
+if(z.hp<=0){
+
+createParticles(z.x,z.y);
+
+if(Math.random()<0.6){
+
+const coin=document.createElement("div");
+coin.className="coin";
+coin.style.left=z.x+"px";
+coin.style.top=z.y+"px";
+game.appendChild(coin);
+
+coinsList.push({
+el:coin,
+x:z.x,
+y:z.y
 });
 
-document.addEventListener("click", e => {
-    if (!running || paused) return;
-    if (e.target.tagName === "BUTTON") return;
-
-    shoot();
-});
-
-function shoot() {
-    const bullet = document.createElement("div");
-
-    bullet.className = "bullet";
-
-    game.appendChild(bullet);
-
-    const dx = mouseX - playerX;
-    const dy = mouseY - playerY;
-
-    const distance = Math.hypot(dx, dy);
-
-    bullets.push({
-        el: bullet,
-        x: playerX,
-        y: playerY,
-        dx: dx / distance,
-        dy: dy / distance,
-        speed: 12
-    });
 }
 
-function movePlayer() {
+score+=10;
 
-    let speed = 4;
-
-    if (keys["shift"] && stamina > 0) {
-        speed = 7;
-        stamina -= 0.7;
-    } else {
-        stamina += 0.35;
-    }
-
-    stamina = Math.max(0, Math.min(100, stamina));
-
-    staminaEl.textContent = Math.floor(stamina);
-
-    if (keys["w"] || keys["arrowup"]) playerY -= speed;
-    if (keys["s"] || keys["arrowdown"]) playerY += speed;
-    if (keys["a"] || keys["arrowleft"]) playerX -= speed;
-    if (keys["d"] || keys["arrowright"]) playerX += speed;
-
-    playerX = Math.max(20, Math.min(window.innerWidth - 20, playerX));
-    playerY = Math.max(20, Math.min(window.innerHeight - 20, playerY));
-
-    player.style.left = playerX + "px";
-    player.style.top = playerY + "px";
+if(score%100===0){
+wave++;
+waveText.textContent=wave;
+showWave("Wave "+wave);
 }
 
-function createZombie() {
+updateHUD();
 
-    const zombie = document.createElement("div");
+z.el.remove();
+zombies.splice(j,1);
 
-    let hp = 1;
-    let speed = 1.4;
-    let reward = 1;
-
-    const roll = Math.random();
-
-    zombie.classList.add("zombie");
-
-    if (roll > 0.75) {
-        zombie.classList.add("fastZombie");
-        hp = 1;
-        speed = 3;
-        reward = 2;
-    }
-
-    if (roll > 0.93) {
-        zombie.classList.remove("fastZombie");
-        zombie.classList.add("tankZombie");
-        hp = 5;
-        speed = 0.9;
-        reward = 5;
-    }
-
-    let side = Math.floor(Math.random() * 4);
-
-    let x;
-    let y;
-
-    switch (side) {
-
-        case 0:
-            x = Math.random() * window.innerWidth;
-            y = -60;
-            break;
-
-        case 1:
-            x = window.innerWidth + 60;
-            y = Math.random() * window.innerHeight;
-            break;
-
-        case 2:
-            x = Math.random() * window.innerWidth;
-            y = window.innerHeight + 60;
-            break;
-
-        default:
-            x = -60;
-            y = Math.random() * window.innerHeight;
-    }
-
-    zombie.style.left = x + "px";
-    zombie.style.top = y + "px";
-
-    game.appendChild(zombie);
-
-    zombies.push({
-        el: zombie,
-        x,
-        y,
-        hp,
-        speed,
-        reward
-    });
 }
 
-function spawnWave() {
+break;
 
-    const count = 5 + wave * 2;
-
-    for (let i = 0; i < count; i++) {
-        createZombie();
-    }
 }
 
-function showWave() {
-
-    waveMessage.textContent = "WAVE " + wave;
-
-    waveMessage.style.opacity = "1";
-
-    setTimeout(() => {
-        waveMessage.style.opacity = "0";
-    }, 2000);
 }
 
-function createBlood(x, y) {
-
-    for (let i = 0; i < 8; i++) {
-
-        const p = document.createElement("div");
-
-        p.className = "particle";
-
-        game.appendChild(p);
-
-        particles.push({
-            el: p,
-            x,
-            y,
-            dx: (Math.random() - 0.5) * 6,
-            dy: (Math.random() - 0.5) * 6,
-            life: 40
-        });
-    }
 }
 
-function createCoin(x, y) {
+};
 
-    const coin = document.createElement("div");
+function updateGame(){
 
-    coin.className = "coin";
-
-    coin.style.left = x + "px";
-    coin.style.top = y + "px";
-
-    game.appendChild(coin);
-
-    coins.push({
-        el: coin,
-        x,
-        y
-    });
-}function moveBullets() {
-
-    for (let i = bullets.length - 1; i >= 0; i--) {
-
-        const b = bullets[i];
-
-        b.x += b.dx * b.speed;
-        b.y += b.dy * b.speed;
-
-        b.el.style.left = b.x + "px";
-        b.el.style.top = b.y + "px";
-
-        if (
-            b.x < -50 ||
-            b.y < -50 ||
-            b.x > window.innerWidth + 50 ||
-            b.y > window.innerHeight + 50
-        ) {
-            b.el.remove();
-            bullets.splice(i, 1);
-            continue;
-        }
-
-        for (let z = zombies.length - 1; z >= 0; z--) {
-
-            const zombie = zombies[z];
-
-            const dist = Math.hypot(
-                b.x - zombie.x,
-                b.y - zombie.y
-            );
-
-            if (dist < 28) {
-
-                zombie.hp--;
-
-                createBlood(zombie.x, zombie.y);
-
-                b.el.remove();
-                bullets.splice(i, 1);
-
-                if (zombie.hp <= 0) {
-
-                    score += 10;
-                    scoreEl.textContent = score;
-
-                    for (let c = 0; c < zombie.reward; c++) {
-                        createCoin(
-                            zombie.x + Math.random() * 30 - 15,
-                            zombie.y + Math.random() * 30 - 15
-                        );
-                    }
-
-                    zombie.el.remove();
-                    zombies.splice(z, 1);
-
-                    if (zombies.length === 0) {
-
-                        wave++;
-
-                        waveEl.textContent = wave;
-
-                        showWave();
-
-                        setTimeout(() => {
-                            spawnWave();
-                        }, 1500);
-                    }
-                }
-
-                break;
-            }
-        }
-    }
+if(!running||paused){
+requestAnimationFrame(updateGame);
+return;
 }
 
-function moveZombies() {
+movePlayer();
+moveBullets();
+moveZombies();
+checkHits();
+updateCoins();
 
-    for (let i = zombies.length - 1; i >= 0; i--) {
+requestAnimationFrame(updateGame);
 
-        const z = zombies[i];
-
-        const dx = playerX - z.x;
-        const dy = playerY - z.y;
-
-        const dist = Math.hypot(dx, dy);
-
-        z.x += (dx / dist) * z.speed;
-        z.y += (dy / dist) * z.speed;
-
-        z.el.style.left = z.x + "px";
-        z.el.style.top = z.y + "px";
-
-        if (dist < 35) {
-
-            health--;
-
-            healthEl.textContent = health;
-
-            player.classList.add("damage");
-
-            setTimeout(() => {
-                player.classList.remove("damage");
-            }, 250);
-
-            z.el.remove();
-            zombies.splice(i, 1);
-
-            if (health <= 0) {
-                gameOver();
-            }
-        }
-    }
 }
 
-function moveParticles() {
-
-    for (let i = particles.length - 1; i >= 0; i--) {
-
-        const p = particles[i];
-
-        p.x += p.dx;
-        p.y += p.dy;
-
-        p.life--;
-
-        p.el.style.left = p.x + "px";
-        p.el.style.top = p.y + "px";
-
-        p.el.style.opacity = p.life / 40;
-
-        if (p.life <= 0) {
-            p.el.remove();
-            particles.splice(i, 1);
-        }
-    }
-}
-
-function collectCoins() {
-
-    for (let i = coins.length - 1; i >= 0; i--) {
-
-        const coin = coins[i];
-
-        const dist = Math.hypot(
-            playerX - coin.x,
-            playerY - coin.y
-        );
-
-        if (dist < 35) {
-
-            money++;
-
-            coinsEl.textContent = money;
-
-            coin.el.remove();
-
-            coins.splice(i, 1);
-
-            if (money >= 20 && health < 5) {
-
-                money -= 20;
-                health++;
-
-                coinsEl.textContent = money;
-                healthEl.textContent = health;
-            }
-        }
-    }
-}
-
-function gameOver() {
-
-    running = false;
-
-    finalScoreEl.textContent = score;
-    finalWaveEl.textContent = wave;
-
-    if (score > highScore) {
-        highScore = score;
-        localStorage.setItem(
-            "zombieHighScore",
-            highScore
-        );
-    }
-
-    highScoreEl.textContent = highScore;
-
-    gameOverScreen.classList.remove("hidden");
-}
-
-function loop() {
-
-    if (!running) return;
-
-    requestAnimationFrame(loop);
-
-    if (paused) return;
-
-    movePlayer();
-    moveBullets();
-    moveZombies();
-    moveParticles();
-    collectCoins();
-}
-
-window.addEventListener("resize", () => {
-
-    playerX = Math.min(
-        playerX,
-        window.innerWidth - 20
-    );
-
-    playerY = Math.min(
-        playerY,
-        window.innerHeight - 20
-    );
-});
+updateGame();
