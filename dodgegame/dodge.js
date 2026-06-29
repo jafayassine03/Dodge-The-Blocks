@@ -30,8 +30,28 @@ let paused=false;
 
 let speed=4;
 let sprintSpeed=7;
+let dashReady=true;
 
 const keys={};
+
+const zombies=[];
+const bullets=[];
+const particles=[];
+const pickups=[];
+
+const timerCard=document.createElement("div");
+timerCard.className="card";
+timerCard.innerHTML="⏱ <span id='time'>0</span>";
+document.getElementById("hud").appendChild(timerCard);
+
+let surviveTime=0;
+
+setInterval(()=>{
+if(running&&!paused){
+surviveTime++;
+document.getElementById("time").textContent=surviveTime;
+}
+},1000);
 
 function updateHUD(){
 healthText.textContent=health;
@@ -54,35 +74,68 @@ waveBanner.style.opacity=0;
 },1800);
 }
 
+document.addEventListener("mousemove",e=>{
+crosshair.style.left=e.clientX+"px";
+crosshair.style.top=e.clientY+"px";
+});
+
 document.addEventListener("keydown",e=>{
+
 keys[e.key.toLowerCase()]=true;
 
 if(e.key.toLowerCase()==="p"&&running){
 paused=!paused;
 pauseMenu.classList.toggle("hidden",!paused);
 }
+
+if(e.code==="Space"&&dashReady&&running&&!paused){
+
+dashReady=false;
+
+let dx=0;
+let dy=0;
+
+if(keys["w"]||keys["arrowup"])dy--;
+if(keys["s"]||keys["arrowdown"])dy++;
+if(keys["a"]||keys["arrowleft"])dx--;
+if(keys["d"]||keys["arrowright"])dx++;
+
+if(dx!==0||dy!==0){
+
+const len=Math.hypot(dx,dy);
+
+playerX+=dx/len*160;
+playerY+=dy/len*160;
+
+}
+
+setTimeout(()=>{
+dashReady=true;
+},3000);
+
+}
+
 });
 
 document.addEventListener("keyup",e=>{
 keys[e.key.toLowerCase()]=false;
 });
 
-document.addEventListener("mousemove",e=>{
-crosshair.style.left=e.clientX+"px";
-crosshair.style.top=e.clientY+"px";
-});
-
 function movePlayer(){
 
-if(paused||!running)return;
+if(!running||paused)return;
 
 let currentSpeed=speed;
 
-if((keys["shift"])&&stamina>0){
+if(keys["shift"]&&stamina>0){
+
 currentSpeed=sprintSpeed;
 stamina-=0.8;
+
 }else{
+
 stamina+=0.4;
+
 }
 
 if(stamina<0)stamina=0;
@@ -95,147 +148,364 @@ if(keys["d"]||keys["arrowright"])playerX+=currentSpeed;
 
 if(playerX<playerSize/2)playerX=playerSize/2;
 if(playerY<playerSize/2)playerY=playerSize/2;
-if(playerX>window.innerWidth-playerSize/2)playerX=window.innerWidth-playerSize/2;
-if(playerY>window.innerHeight-playerSize/2)playerY=window.innerHeight-playerSize/2;
+
+if(playerX>window.innerWidth-playerSize/2){
+playerX=window.innerWidth-playerSize/2;
+}
+
+if(playerY>window.innerHeight-playerSize/2){
+playerY=window.innerHeight-playerSize/2;
+}
 
 updatePlayer();
 updateHUD();
-}
 
-function gameLoop(){
-
-if(running&&!paused){
-movePlayer();
-}
-
-requestAnimationFrame(gameLoop);
 }
 
 startBtn.onclick=()=>{
+
 menu.classList.add("hidden");
+
 running=true;
+
 showWave("Wave 1");
+
 };
 
 restartBtn.onclick=()=>{
+
 location.reload();
+
 };
 
 window.addEventListener("resize",()=>{
-if(playerX>window.innerWidth-playerSize/2)playerX=window.innerWidth-playerSize/2;
-if(playerY>window.innerHeight-playerSize/2)playerY=window.innerHeight-playerSize/2;
+
+if(playerX>window.innerWidth-playerSize/2){
+playerX=window.innerWidth-playerSize/2;
+}
+
+if(playerY>window.innerHeight-playerSize/2){
+playerY=window.innerHeight-playerSize/2;
+}
+
 updatePlayer();
+
 });
 
 updateHUD();
 updatePlayer();
-gameLoop();
-const zombies=[];
-const bullets=[];
-const coinsList=[];
+function createBullet(mx,my){
 
-function spawnZombie(){
+const bullet=document.createElement("div");
+bullet.className="bullet";
 
-if(!running)return;
+const angle=Math.atan2(my-playerY,mx-playerX);
 
-const z=document.createElement("div");
-z.className="zombie";
+const speed=12;
 
-const type=Math.random();
+const obj={
+el:bullet,
+x:playerX,
+y:playerY,
+vx:Math.cos(angle)*speed,
+vy:Math.sin(angle)*speed,
+life:90
+};
 
-let hp=1;
-let speed=1.2;
-let size=40;
+bullet.style.left=obj.x+"px";
+bullet.style.top=obj.y+"px";
 
-if(type>.82){
-z.classList.add("fast");
-speed=2.4;
+game.appendChild(bullet);
+bullets.push(obj);
+
 }
 
-if(type>.94){
-z.classList.remove("fast");
-z.classList.add("tank");
-hp=4;
-speed=.7;
-size=60;
-}
-
-let x,y;
-
-if(Math.random()<.5){
-x=Math.random()*window.innerWidth;
-y=Math.random()<.5?-80:window.innerHeight+80;
-}else{
-x=Math.random()<.5?-80:window.innerWidth+80;
-y=Math.random()*window.innerHeight;
-}
-
-z.style.width=size+"px";
-z.style.height=size+"px";
-z.style.left=x+"px";
-z.style.top=y+"px";
-
-game.appendChild(z);
-
-zombies.push({
-el:z,
-x,
-y,
-size,
-speed,
-hp,
-hit:0
-});
-}
-
-function shoot(e){
+document.addEventListener("mousedown",e=>{
 
 if(!running||paused)return;
 
-const b=document.createElement("div");
-b.className="bullet";
+createBullet(e.clientX,e.clientY);
 
-const angle=Math.atan2(e.clientY-playerY,e.clientX-playerX);
-
-game.appendChild(b);
-
-bullets.push({
-el:b,
-x:playerX,
-y:playerY,
-dx:Math.cos(angle)*12,
-dy:Math.sin(angle)*12
 });
-}
 
-document.addEventListener("mousedown",shoot);
-
-function moveBullets(){
+function updateBullets(){
 
 for(let i=bullets.length-1;i>=0;i--){
 
 const b=bullets[i];
 
-b.x+=b.dx;
-b.y+=b.dy;
+b.x+=b.vx;
+b.y+=b.vy;
+b.life--;
 
 b.el.style.left=b.x+"px";
 b.el.style.top=b.y+"px";
 
 if(
-b.x<-50||
-b.x>window.innerWidth+50||
-b.y<-50||
-b.y>window.innerHeight+50
+b.life<=0||
+b.x<-30||
+b.y<-30||
+b.x>window.innerWidth+30||
+b.y>window.innerHeight+30
 ){
+
 b.el.remove();
 bullets.splice(i,1);
+
 }
 
 }
+
 }
 
-function moveZombies(){
+function createParticles(x,y,color,count){
+
+for(let i=0;i<count;i++){
+
+const p=document.createElement("div");
+
+p.className="particle";
+p.style.background=color;
+
+const obj={
+el:p,
+x:x,
+y:y,
+vx:(Math.random()-.5)*8,
+vy:(Math.random()-.5)*8,
+life:25+Math.random()*20
+};
+
+p.style.left=x+"px";
+p.style.top=y+"px";
+
+game.appendChild(p);
+particles.push(obj);
+
+}
+
+}
+
+function updateParticles(){
+
+for(let i=particles.length-1;i>=0;i--){
+
+const p=particles[i];
+
+p.x+=p.vx;
+p.y+=p.vy;
+
+p.vx*=.96;
+p.vy*=.96;
+
+p.life--;
+
+p.el.style.left=p.x+"px";
+p.el.style.top=p.y+"px";
+p.el.style.opacity=p.life/45;
+
+if(p.life<=0){
+
+p.el.remove();
+particles.splice(i,1);
+
+}
+
+}
+
+}
+
+function spawnCoin(x,y){
+
+const coin=document.createElement("div");
+coin.className="coin";
+
+coin.style.left=x+"px";
+coin.style.top=y+"px";
+
+game.appendChild(coin);
+
+pickups.push({
+type:"coin",
+el:coin,
+x:x,
+y:y
+});
+
+}
+
+function spawnHealth(){
+
+const h=document.createElement("div");
+
+h.style.position="absolute";
+h.style.width="22px";
+h.style.height="22px";
+h.style.borderRadius="50%";
+h.style.background="#22c55e";
+h.style.boxShadow="0 0 12px #22c55e";
+
+const x=Math.random()*(window.innerWidth-50);
+const y=Math.random()*(window.innerHeight-50);
+
+h.style.left=x+"px";
+h.style.top=y+"px";
+
+game.appendChild(h);
+
+pickups.push({
+type:"health",
+el:h,
+x:x,
+y:y,
+life:900
+});
+
+}
+
+setInterval(()=>{
+
+if(running&&!paused&&Math.random()<0.45){
+
+spawnHealth();
+
+}
+
+},18000);
+
+function updatePickups(){
+
+for(let i=pickups.length-1;i>=0;i--){
+
+const p=pickups[i];
+
+if(p.life!==undefined){
+
+p.life--;
+
+if(p.life<=0){
+
+p.el.remove();
+pickups.splice(i,1);
+continue;
+
+}
+
+}
+
+const d=Math.hypot(playerX-p.x,playerY-p.y);
+
+if(d<30){
+
+if(p.type==="coin"){
+
+coins+=1;
+
+}
+
+if(p.type==="health"){
+
+if(health<5){
+
+health++;
+
+}
+
+}
+
+updateHUD();
+
+createParticles(p.x,p.y,"gold",8);
+
+p.el.remove();
+pickups.splice(i,1);
+
+}
+
+}
+
+}
+function spawnZombie(type="normal"){
+
+const zombie=document.createElement("div");
+zombie.className="zombie";
+
+let size=40;
+let speed=1.4;
+let hp=1;
+let reward=10;
+
+if(type==="fast"){
+zombie.classList.add("fast");
+speed=2.6;
+hp=1;
+reward=15;
+}
+
+if(type==="tank"){
+zombie.classList.add("tank");
+size=60;
+speed=.8;
+hp=4;
+reward=30;
+}
+
+if(type==="boss"){
+zombie.classList.add("tank");
+size=120;
+speed=.55;
+hp=25;
+reward=200;
+zombie.style.background="#5b0f0f";
+zombie.style.boxShadow="0 0 25px #ff0000";
+}
+
+let x;
+let y;
+
+if(Math.random()<.5){
+
+x=Math.random()*window.innerWidth;
+y=Math.random()<.5?-100:window.innerHeight+100;
+
+}else{
+
+x=Math.random()<.5?-100:window.innerWidth+100;
+y=Math.random()*window.innerHeight;
+
+}
+
+zombie.style.width=size+"px";
+zombie.style.height=size+"px";
+zombie.style.left=x+"px";
+zombie.style.top=y+"px";
+
+game.appendChild(zombie);
+
+zombies.push({
+el:zombie,
+x,
+y,
+size,
+speed,
+hp,
+reward,
+lastHit:0
+});
+
+}
+
+function randomZombie(){
+
+const r=Math.random();
+
+if(r<.7)return"normal";
+if(r<.9)return"fast";
+return"tank";
+
+}
+
+function updateZombies(){
 
 for(let i=zombies.length-1;i>=0;i--){
 
@@ -249,27 +519,43 @@ z.y+=Math.sin(angle)*z.speed;
 z.el.style.left=z.x+"px";
 z.el.style.top=z.y+"px";
 
-const dist=Math.hypot(playerX-z.x,playerY-z.y);
+const hitDistance=(playerSize+z.size)/2;
 
-if(dist<(playerSize+z.size)/2&&Date.now()-z.hit>700){
+if(Math.hypot(playerX-z.x,playerY-z.y)<hitDistance){
 
-z.hit=Date.now();
+if(Date.now()-z.lastHit>700){
+
+z.lastHit=Date.now();
 
 health--;
 
+updateHUD();
+
 player.classList.add("damage");
+
+document.body.animate(
+[
+{transform:"translate(6px,2px)"},
+{transform:"translate(-6px,-2px)"},
+{transform:"translate(4px,4px)"},
+{transform:"translate(0,0)"}
+],
+{
+duration:180
+}
+);
 
 setTimeout(()=>{
 player.classList.remove("damage");
-},250);
-
-updateHUD();
+},200);
 
 if(health<=0){
+
 running=false;
-gameOver.classList.remove("hidden");
+
 finalScore.textContent=score;
-}
+
+gameOver.classList.remove("hidden");
 
 }
 
@@ -277,7 +563,11 @@ finalScore.textContent=score;
 
 }
 
-function checkHits(){
+}
+
+}
+
+function checkBulletHits(){
 
 for(let i=bullets.length-1;i>=0;i--){
 
@@ -291,6 +581,8 @@ const d=Math.hypot(b.x-z.x,b.y-z.y);
 
 if(d<(z.size/2)+5){
 
+createParticles(z.x,z.y,"#ef4444",12);
+
 z.hp--;
 
 b.el.remove();
@@ -298,12 +590,16 @@ bullets.splice(i,1);
 
 if(z.hp<=0){
 
-score+=10;
-coins++;
-updateHUD();
+score+=z.reward;
+
+if(Math.random()<.6){
+spawnCoin(z.x,z.y);
+}
 
 z.el.remove();
 zombies.splice(j,1);
+
+updateHUD();
 
 }
 
@@ -318,73 +614,56 @@ break;
 }
 
 setInterval(()=>{
+
 if(running&&!paused){
-spawnZombie();
+
+spawnZombie(randomZombie());
+
 }
+
 },1400);
-function updateCoins(){
+let waveKills=0;
+let spawnDelay=1400;
+let bossAlive=false;
 
-for(let i=coinsList.length-1;i>=0;i--){
+function nextWave(){
 
-const c=coinsList[i];
+wave++;
+waveKills=0;
 
-const d=Math.hypot(playerX-c.x,playerY-c.y);
+showWave("Wave "+wave);
 
-if(d<30){
-coins++;
-coinText.textContent=coins;
-c.el.remove();
-coinsList.splice(i,1);
+updateHUD();
+
+if(spawnDelay>450){
+spawnDelay-=80;
 }
 
-}
+clearInterval(spawnLoop);
+
+spawnLoop=setInterval(()=>{
+
+if(running&&!paused){
+
+spawnZombie(randomZombie());
 
 }
 
-function createParticles(x,y){
+},spawnDelay);
 
-for(let i=0;i<10;i++){
+if(wave%5===0&&!bossAlive){
 
-const p=document.createElement("div");
-p.className="particle";
+bossAlive=true;
 
-game.appendChild(p);
-
-let px=x;
-let py=y;
-
-const dx=(Math.random()-.5)*8;
-const dy=(Math.random()-.5)*8;
-
-p.style.left=px+"px";
-p.style.top=py+"px";
-
-let life=30;
-
-const anim=setInterval(()=>{
-
-px+=dx;
-py+=dy;
-life--;
-
-p.style.left=px+"px";
-p.style.top=py+"px";
-p.style.opacity=life/30;
-
-if(life<=0){
-clearInterval(anim);
-p.remove();
-}
-
-},16);
+spawnZombie("boss");
 
 }
 
 }
 
-const oldCheckHits=checkHits;
+const oldCheckBulletHits=checkBulletHits;
 
-checkHits=function(){
+checkBulletHits=function(){
 
 for(let i=bullets.length-1;i>=0;i--){
 
@@ -398,6 +677,8 @@ const d=Math.hypot(b.x-z.x,b.y-z.y);
 
 if(d<(z.size/2)+5){
 
+createParticles(z.x,z.y,"#ef4444",12);
+
 z.hp--;
 
 b.el.remove();
@@ -405,36 +686,27 @@ bullets.splice(i,1);
 
 if(z.hp<=0){
 
-createParticles(z.x,z.y);
+score+=z.reward;
+waveKills++;
 
 if(Math.random()<0.6){
-
-const coin=document.createElement("div");
-coin.className="coin";
-coin.style.left=z.x+"px";
-coin.style.top=z.y+"px";
-game.appendChild(coin);
-
-coinsList.push({
-el:coin,
-x:z.x,
-y:z.y
-});
-
+spawnCoin(z.x,z.y);
 }
 
-score+=10;
-
-if(score%100===0){
-wave++;
-waveText.textContent=wave;
-showWave("Wave "+wave);
+if(z.size>=120){
+bossAlive=false;
 }
-
-updateHUD();
 
 z.el.remove();
 zombies.splice(j,1);
+
+updateHUD();
+
+if(waveKills>=15+wave*2){
+
+nextWave();
+
+}
 
 }
 
@@ -448,21 +720,33 @@ break;
 
 };
 
-function updateGame(){
+let spawnLoop=setInterval(()=>{
 
-if(!running||paused){
-requestAnimationFrame(updateGame);
-return;
+if(running&&!paused){
+
+spawnZombie(randomZombie());
+
 }
+
+},spawnDelay);
+
+function gameLoop(){
+
+requestAnimationFrame(gameLoop);
+
+if(!running||paused)return;
 
 movePlayer();
-moveBullets();
-moveZombies();
-checkHits();
-updateCoins();
-
-requestAnimationFrame(updateGame);
+updateBullets();
+updateParticles();
+updatePickups();
+updateZombies();
+checkBulletHits();
 
 }
 
-updateGame();
+gameLoop();
+
+showWave("Zombie Escape");
+updateHUD();
+updatePlayer();
