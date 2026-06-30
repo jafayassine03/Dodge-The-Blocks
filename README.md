@@ -1,4 +1,4 @@
-# 🧟 Zombie Escape
+ 🧟 Zombie Escape
 
 Zombie Escape is a fast-paced 2D survival game built with HTML, CSS, and JavaScript. Survive endless waves of zombies, collect coins, manage your stamina, and see how long you can stay alive.
 
