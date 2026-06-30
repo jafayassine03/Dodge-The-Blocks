@@ -10,11 +10,12 @@
 
 <div id="menu" class="overlay">
     <h1>🧟 Zombie Escape</h1>
-    <p>Survive endless waves of zombies.</p>
+    <p>Survive endless waves of zombies and defeat powerful bosses.</p>
 
     <div class="controls">
         <p><b>Move:</b> WASD / Arrow Keys</p>
         <p><b>Sprint:</b> Shift</p>
+        <p><b>Dash:</b> Space</p>
         <p><b>Shoot:</b> Left Mouse Button</p>
         <p><b>Pause:</b> P</p>
     </div>
@@ -49,9 +50,41 @@
         <span id="stamina">100</span>
     </div>
 
+    <div class="card">
+        ⏱
+        <span id="time">0</span>
+    </div>
+
+    <div class="card">
+        ☠️
+        <span id="kills">0</span>
+    </div>
+
 </div>
 
 <div id="waveText"></div>
+
+<div id="bossBarContainer">
+    <div id="bossBar"></div>
+</div>
+
+<div id="healthBarContainer">
+    <div id="healthBar"></div>
+</div>
+
+<div id="staminaBarContainer">
+    <div id="staminaBar"></div>
+</div>
+
+<div id="waveProgressContainer">
+    <div id="waveProgress"></div>
+</div>
+
+<div id="fps">FPS: 0</div>
+
+<div id="minimap">
+    <div id="miniPlayer"></div>
+</div>
 
 <div id="game">
 
@@ -74,9 +107,12 @@
 
     <h3 id="finalScore">0</h3>
 
-    <button id="restartBtn">
-        Play Again
-    </button>
+    <p>Survived: <span id="finalTime">0</span> Seconds</p>
+    <p>Wave Reached: <span id="finalWave">1</span></p>
+    <p>Kills: <span id="finalKills">0</span></p>
+    <p>Coins Collected: <span id="finalCoins">0</span></p>
+
+    <button id="restartBtn">Play Again</button>
 
 </div>
 
